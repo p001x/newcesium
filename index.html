@@ -6,19 +6,95 @@
 <script src="https://cdn.jsdelivr.net/npm/cesium@1.116/Build/Cesium/Cesium.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/cesium@1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 <style>
-html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
-#toolbar { position:absolute; top:10px; left:10px; z-index:10; background:rgba(255,255,255,0.92); padding:8px; border-radius:8px; display:flex; flex-wrap:wrap; gap:6px; font-family:system-ui,sans-serif; }
-#toolbar button { padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer; background:#fff; }
-#toolbar .pill { padding:4px 8px; border-radius:999px; background:#f5f5f5; border:1px solid #eee; font-size:12px; }
-#loadingOverlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:1000; background: rgba(0,0,0,0.45); font-family:system-ui,sans-serif; }
-#loadingCard { width:360px; max-width:90vw; background:rgba(20,20,20,0.9); color:#fff; border-radius:10px; padding:18px; text-align:center; }
-#progressBarTrack { width:100%; height:12px; background:#3a3a3a; border-radius:999px; overflow:hidden; border:1px solid #2a2a2a; }
-#progressBarFill { width:0%; height:100%; background:#27e36a; transition: width 0.15s ease; }
-#progressMeta { font-size:12px; opacity:0.9; margin-top:8px; display:flex; justify-content:space-between; }
+html, body, #cesiumContainer {
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+}
+
+#toolbar {
+  position:absolute;
+  top:10px;
+  left:10px;
+  z-index:10;
+  background:rgba(255,255,255,0.92);
+  padding:8px;
+  border-radius:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  font-family:system-ui,sans-serif;
+  max-width:90vw;
+  box-sizing:border-box;
+}
+
+#toolbar button {
+  padding:6px 10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  cursor:pointer;
+  background:#fff;
+}
+
+#toolbar .pill {
+  padding:4px 8px;
+  border-radius:999px;
+  background:#f5f5f5;
+  border:1px solid #eee;
+  font-size:12px;
+}
+
+#loadingOverlay {
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  background: rgba(0,0,0,0.45);
+  font-family:system-ui,sans-serif;
+}
+
+#loadingCard {
+  width:360px;
+  max-width:90vw;
+  background:rgba(20,20,20,0.9);
+  color:#fff;
+  border-radius:10px;
+  padding:18px;
+  text-align:center;
+}
+
+#progressBarTrack {
+  width:100%;
+  height:12px;
+  background:#3a3a3a;
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid #2a2a2a;
+}
+
+#progressBarFill {
+  width:0%;
+  height:100%;
+  background:#27e36a;
+  transition: width 0.15s ease;
+}
+
+#progressMeta {
+  font-size:12px;
+  opacity:0.9;
+  margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+}
 </style>
 </head>
 <body>
 <div id="cesiumContainer"></div>
+
 <div id="toolbar">
   <button id="toggleTerrain">Toggle Terrain</button>
   <button id="resetCamera">Reset Camera</button>
@@ -33,11 +109,15 @@ html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; ove
   <span class="pill" id="terrainPill">Terrain: Flat</span>
   <span class="pill" id="highlightPill">Highlight: On</span>
 </div>
+
 <div id="loadingOverlay">
   <div id="loadingCard">
     <div>Loading tileset…</div>
     <div id="progressBarTrack"><div id="progressBarFill"></div></div>
-    <div id="progressMeta"><span id="phaseTag">Phase: Fast Preview</span><span id="progressPct">0%</span></div>
+    <div id="progressMeta">
+      <span id="phaseTag">Phase: Fast Preview</span>
+      <span id="progressPct">0%</span>
+    </div>
   </div>
 </div>
 
@@ -69,7 +149,11 @@ const cycleBasemapBtn=document.getElementById('cycleBasemap');
   });
 
   const camCtrl = viewer.scene.screenSpaceCameraController;
-  camCtrl.enableTranslate=true; camCtrl.enableRotate=true; camCtrl.enableTilt=true; camCtrl.enableZoom=true; camCtrl.enableLook=true;
+  camCtrl.enableTranslate=true;
+  camCtrl.enableRotate=true;
+  camCtrl.enableTilt=true;
+  camCtrl.enableZoom=true;
+  camCtrl.enableLook=true;
 
   tileset = await Cesium.Cesium3DTileset.fromIonAssetId(ION_ASSET_ID,{
     maximumScreenSpaceError:64,
@@ -98,7 +182,10 @@ const cycleBasemapBtn=document.getElementById('cycleBasemap');
       updateProgress();
       const done=(stats.numberOfTilesProcessing===0 && stats.numberOfPendingRequests===0);
       if(!upgraded && done && loadedTiles>0) upgradeQuality();
-      if(upgraded && done) { setProgress(100); setTimeout(()=>overlay.style.display='none',500); }
+      if(upgraded && done) {
+        setProgress(100);
+        setTimeout(()=>overlay.style.display='none',500);
+      }
     }
   },150);
 
@@ -122,26 +209,74 @@ function safeSetBasemapAlpha(alpha){
 }
 
 function cycleBasemapMode(){
-  if(basemapMode==='dim'){ safeSetBasemapAlpha(0.0); basemapMode='hidden'; cycleBasemapBtn.textContent='Basemap: Hidden'; }
-  else if(basemapMode==='hidden'){ safeSetBasemapAlpha(1.0); basemapMode='normal'; cycleBasemapBtn.textContent='Basemap: Normal'; }
-  else { safeSetBasemapAlpha(0.25); basemapMode='dim'; cycleBasemapBtn.textContent='Basemap: Dim'; }
+  if(basemapMode==='dim'){
+    safeSetBasemapAlpha(0.0); basemapMode='hidden'; cycleBasemapBtn.textContent='Basemap: Hidden';
+  } else if(basemapMode==='hidden'){
+    safeSetBasemapAlpha(1.0); basemapMode='normal'; cycleBasemapBtn.textContent='Basemap: Normal';
+  } else {
+    safeSetBasemapAlpha(0.25); basemapMode='dim'; cycleBasemapBtn.textContent='Basemap: Dim';
+  }
 }
 
-function setProgress(percent){ const p=Math.max(0,Math.min(100,percent)); fill.style.width=p+'%'; pctLabel.textContent=p.toFixed(0)+'%'; }
-function updateProgress(){ if(estTotalTiles<=0) setProgress(Math.min(40,Math.log10(loadedTiles+1)*20)); else setProgress((loadedTiles/estTotalTiles)*100); }
+function setProgress(percent){
+  const p=Math.max(0,Math.min(100,percent));
+  fill.style.width=p+'%';
+  pctLabel.textContent=p.toFixed(0)+'%';
+}
 
-async function upgradeQuality(){ if(upgraded) return; upgraded=true; qualityPill.textContent='Quality: Full'; phaseTag.textContent='Phase: Full Quality';
-  if(!terrainOn){viewer.terrainProvider=Cesium.createWorldTerrain(); terrainOn=true; terrainPill.textContent='Terrain: Real';}
-  tileset.maximumScreenSpaceError=16; tileset.dynamicScreenSpaceErrorFactor=2.0; tileset.skipLevelOfDetail=false; tileset.baseScreenSpaceError=16; tileset.skipLevels=0; tileset.loadSiblings=true;
+function updateProgress(){
+  if(estTotalTiles<=0){
+    setProgress(Math.min(40,Math.log10(loadedTiles+1)*20));
+  } else {
+    setProgress((loadedTiles/estTotalTiles)*100);
+  }
+}
+
+async function upgradeQuality(){
+  if(upgraded) return;
+  upgraded=true;
+  qualityPill.textContent='Quality: Full';
+  phaseTag.textContent='Phase: Full Quality';
+  if(!terrainOn){
+    viewer.terrainProvider=Cesium.createWorldTerrain();
+    terrainOn=true;
+    terrainPill.textContent='Terrain: Real';
+  }
+  tileset.maximumScreenSpaceError=16;
+  tileset.dynamicScreenSpaceErrorFactor=2.0;
+  tileset.skipLevelOfDetail=false;
+  tileset.baseScreenSpaceError=16;
+  tileset.skipLevels=0;
+  tileset.loadSiblings=true;
   viewer.scene.requestRender();
 }
 
-function toggleTerrain(){ terrainOn=!terrainOn; viewer.terrainProvider=terrainOn?Cesium.createWorldTerrain():new Cesium.EllipsoidTerrainProvider(); terrainPill.textContent=terrainOn?'Terrain: Real':'Terrain: Flat'; viewer.scene.requestRender(); }
-function resetCamera(){ if(!initialCamera) return; viewer.camera.setView({destination:initialCamera.position,orientation:{heading:initialCamera.heading,pitch:initialCamera.pitch,roll:initialCamera.roll}}); }
-function zoomToTileset(){ if(!tileset) return; viewer.camera.flyToBoundingSphere(tileset.boundingSphere,{ duration:2.5 }); }
+function toggleTerrain(){
+  terrainOn=!terrainOn;
+  viewer.terrainProvider=terrainOn?Cesium.createWorldTerrain():new Cesium.EllipsoidTerrainProvider();
+  terrainPill.textContent=terrainOn?'Terrain: Real':'Terrain: Flat';
+  viewer.scene.requestRender();
+}
+
+function resetCamera(){
+  if(!initialCamera) return;
+  viewer.camera.setView({
+    destination:initialCamera.position,
+    orientation:{heading:initialCamera.heading,pitch:initialCamera.pitch,roll:initialCamera.roll}
+  });
+}
+
+function zoomToTileset(){
+  if(!tileset) return;
+  viewer.camera.flyToBoundingSphere(tileset.boundingSphere,{ duration:2.5 });
+}
 
 function startOrbit(){
-  if(orbitInterval){ clearInterval(orbitInterval); orbitInterval=null; return; }
+  if(orbitInterval){
+    clearInterval(orbitInterval);
+    orbitInterval=null;
+    return;
+  }
   const center=tileset.boundingSphere.center;
   const radius=tileset.boundingSphere.radius*2;
   let angle=0;
@@ -156,16 +291,26 @@ function startOrbit(){
 function measureDistance(){
   let handler=new Cesium.ScreenSpaceEventHandler(viewer.canvas);
   let positions=[],distance=0;
-  const existing=viewer.entities.getById('distanceLine'); if(existing) viewer.entities.remove(existing);
-  viewer.entities.add({id:'distanceLine', polyline:{positions:new Cesium.CallbackProperty(()=>positions,false),width:3,material:Cesium.Color.YELLOW}});
+  const existing=viewer.entities.getById('distanceLine');
+  if(existing) viewer.entities.remove(existing);
+  viewer.entities.add({
+    id:'distanceLine',
+    polyline:{positions:new Cesium.CallbackProperty(()=>positions,false),width:3,material:Cesium.Color.YELLOW}
+  });
   handler.setInputAction((click)=>{
     const pickedPos=viewer.scene.pickPosition(click.position);
     if(Cesium.defined(pickedPos)){
       positions.push(pickedPos.clone());
-      if(positions.length>1){ distance+=Cesium.Cartesian3.distance(positions[positions.length-2],positions[positions.length-1]); console.log('Distance:',distance.toFixed(2),'m'); }
+      if(positions.length>1){
+        distance+=Cesium.Cartesian3.distance(positions[positions.length-2],positions[positions.length-1]);
+        console.log('Distance:',distance.toFixed(2),'m');
+      }
     }
   },Cesium.ScreenSpaceEventType.LEFT_CLICK);
-  handler.setInputAction(()=>{ handler.destroy(); console.log('Distance measurement ended'); },Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+  handler.setInputAction(()=>{
+    handler.destroy();
+    console.log('Distance measurement ended');
+  },Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 }
 
 function toggle3DNavigation(){
@@ -174,8 +319,14 @@ function toggle3DNavigation(){
     console.log('3D Navigation ON');
     navHandler=new Cesium.ScreenSpaceEventHandler(viewer.canvas);
     lastMouseNav=null;
-    navHandler.setInputAction((movement)=>{ if(lastMouseNav) viewer.camera.lookRight((movement.startPosition.x-lastMouseNav.x)*0.002); lastMouseNav=movement.startPosition; },Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-  }else{ console.log('3D Navigation OFF'); if(navHandler){ navHandler.destroy(); navHandler=null; } }
+    navHandler.setInputAction((movement)=>{
+      if(lastMouseNav) viewer.camera.lookRight((movement.startPosition.x-lastMouseNav.x)*0.002);
+      lastMouseNav=movement.startPosition;
+    },Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+  } else {
+    console.log('3D Navigation OFF');
+    if(navHandler){ navHandler.destroy(); navHandler=null; }
+  }
 }
 </script>
 </body>
